@@ -4,7 +4,7 @@ import android.app.Application
 import android.os.CountDownTimer
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.MutableLiveData
 import com.example.numbercomposition.R
 import com.example.numbercomposition.data.GameRepositoryImpl
 import com.example.numbercomposition.domain.entities.GameResult
@@ -27,36 +27,36 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     private var timer: CountDownTimer? = null
 
-    private val _formattedTime = MediatorLiveData<String>()
-    private val formattedTime: LiveData<String>
+    private val _formattedTime = MutableLiveData<String>()
+    val formattedTime: LiveData<String>
         get() = _formattedTime
 
-    private val _question = MediatorLiveData<Question>()
-    private val question: LiveData<Question>
+    private val _question = MutableLiveData<Question>()
+    val question: LiveData<Question>
         get() = _question
 
-    private val _percentOfRightAnswers = MediatorLiveData<Int>()
-    private val percentOfRightAnswers: LiveData<Int>
+    private val _percentOfRightAnswers = MutableLiveData<Int>()
+    val percentOfRightAnswers: LiveData<Int>
         get() = _percentOfRightAnswers
 
-    private val _progressAnswers = MediatorLiveData<String>()
-    private val progressAnswers: LiveData<String>
+    private val _progressAnswers = MutableLiveData<String>()
+    val progressAnswers: LiveData<String>
         get() = _progressAnswers
 
-    private val _enoughCountOfRightAnswers = MediatorLiveData<Boolean>()
-    private val enoughCountOfRightAnswers: LiveData<Boolean>
+    private val _enoughCountOfRightAnswers = MutableLiveData<Boolean>()
+    val enoughCountOfRightAnswers: LiveData<Boolean>
         get() = _enoughCountOfRightAnswers
 
-    private val _enoughPercentOfRightAnswers = MediatorLiveData<Boolean>()
-    private val enoughPercentOfRightAnswers: LiveData<Boolean>
+    private val _enoughPercentOfRightAnswers = MutableLiveData<Boolean>()
+    val enoughPercentOfRightAnswers: LiveData<Boolean>
         get() = _enoughPercentOfRightAnswers
 
-    private val _gameResult = MediatorLiveData<GameResult>()
-    private val gameResult: LiveData<GameResult>
+    private val _gameResult = MutableLiveData<GameResult>()
+    val gameResult: LiveData<GameResult>
         get() = _gameResult
 
-    private val _minPercent = MediatorLiveData<Int>()
-    private val minPercent: LiveData<Int>
+    private val _minPercent = MutableLiveData<Int>()
+    val minPercent: LiveData<Int>
         get() = _minPercent
 
     private var countOfRightAnswers = 0
@@ -66,6 +66,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         getGameSettings(level)
         startTimer()
         generateQuestion()
+        updateProgress()
     }
 
     fun chooseAnswer(number: Int) {
@@ -90,7 +91,10 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun calculatePercentOfRightAnswers(): Int {
-        return ((countOfRightAnswers / countOfQuestions.toDouble()) * 100).toInt()
+        return if (countOfQuestions == 0)
+            0
+        else
+            ((countOfRightAnswers / countOfQuestions.toDouble()) * 100).toInt()
     }
 
     private fun checkAnswer(number: Int) {
@@ -131,9 +135,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private fun formatTime(millisUntilFinished: Long): String {
         val seconds = millisUntilFinished / MILLIS_IN_SECONDS
         val minutes = seconds / SECONDS_IN_MINUTES
-        val leftSeconds = seconds - minutes * SECONDS_IN_MINUTES
+        val leftSeconds = seconds - (minutes * SECONDS_IN_MINUTES)
 
-        return String().format("%02d:%02d", minutes, leftSeconds)
+        return String.format("%02d:%02d", minutes, leftSeconds)
     }
 
     private fun finishGame() {
